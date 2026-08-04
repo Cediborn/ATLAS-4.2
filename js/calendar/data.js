@@ -24,6 +24,7 @@
  * @property {string|null} projectId
  * @property {string|null} habitId
  * @property {string|null} goalId
+ * @property {string|null} bookId
  * @property {number} attachmentsCount
  * @property {string} createdAt
  * @property {string} updatedAt
@@ -52,6 +53,8 @@ export const EVENT_TYPE_CONFIG = {
   Birthday: { icon: 'gift' },
   Exam: { icon: 'clipboardCheck' },
   Assignment: { icon: 'fileText' },
+  'Reading Session': { icon: 'book' },
+  'Book Deadline': { icon: 'book' },
   Custom: { icon: 'sparkle' },
 };
 export const EVENT_TYPES = Object.keys(EVENT_TYPE_CONFIG);
@@ -60,7 +63,7 @@ const base = {
   description: '', notes: '', color: null, location: '',
   recurring: false, recurrenceRule: null, completed: false,
   priority: 'medium', deadline: false, reminderMinutesBefore: 30,
-  projectId: null, habitId: null, goalId: null, attachmentsCount: 0,
+  projectId: null, habitId: null, goalId: null, bookId: null, attachmentsCount: 0,
   googleEventId: null, source: 'local',
 };
 

@@ -7,6 +7,13 @@ import { Badge, Progress, ProgressRing, PriorityBadge, DeadlineBadge, Tag, empty
 import { CATEGORY_CONFIG } from './data.js';
 import { formatDate, timeAgo } from '../date-utils.js';
 
+// ForecastPill, ForecastWidget, and LinkedEntityChip all moved to the shared
+// component library once Books needed the identical shapes (a reading-pace
+// forecast; Goal/Project/Habit cross-link chips reused for Books' own
+// links). Re-exported here so every existing import of these three
+// elsewhere in this module keeps working unchanged. See js/components.js.
+export { ForecastPill, ForecastWidget, LinkedEntityChip } from '../components.js';
+
 // ---- GoalStatusBadge — same pattern as Projects' ProjectStatusBadge, own
 // copy rather than a forced shared abstraction: the two status vocabularies
 // only partly overlap (Goals has Paused/Cancelled, Projects has Review),
@@ -31,46 +38,6 @@ export function GoalActionMenu({ id, itemLabel, favorite, archived }) {
         <div class="menu__divider"></div>
         <button type="button" class="menu__item" data-action="archive">${icon('archive', { size: 16 })}<span>${archived ? 'Unarchive' : 'Archive'}</span></button>
         <button type="button" class="menu__item menu__item--danger" data-action="delete">${icon('trash', { size: 16 })}<span>Delete</span></button>
-      </div>
-    </div>`;
-}
-
-// ---- ForecastPill — compact, for the grid card. Risk 'unknown' (no
-// deadline set, so there's nothing to be at risk against) renders neutral,
-// not a 4th alarming color. ----
-export function ForecastPill({ forecast }) {
-  if (forecast.risk === 'unknown') return `<span class="forecast-pill forecast-pill--neutral">${icon('compass', { size: 12 })}<span>No deadline set</span></span>`;
-  const label = forecast.risk === 'high' ? 'At risk' : forecast.risk === 'medium' ? 'Behind pace' : 'On track';
-  return `<span class="forecast-pill forecast-pill--${forecast.risk}">${icon('trendingUp', { size: 12 })}<span>${label}</span></span>`;
-}
-
-// ---- ForecastWidget — the full detail-panel version, every number spelled out ----
-export function ForecastWidget({ forecast }) {
-  if (forecast.risk === 'unknown' && !forecast.likelyCompletionDate) {
-    return `<div class="forecast-widget forecast-widget--empty">${icon('compass', { size: 16 })}<p>Not enough recent progress history yet to forecast this one.</p></div>`;
-  }
-  return `
-    <div class="forecast-widget">
-      <div class="forecast-widget__row">
-        <span class="forecast-widget__label">Likely completion</span>
-        <span class="forecast-widget__value">${forecast.likelyCompletionDate ? formatDate(forecast.likelyCompletionDate) : '\u2014'}</span>
-      </div>
-      <div class="forecast-widget__row">
-        <span class="forecast-widget__label">Confidence</span>
-        <span class="forecast-widget__value">${forecast.confidence}%</span>
-      </div>
-      <div class="forecast-widget__row">
-        <span class="forecast-widget__label">Current pace</span>
-        <span class="forecast-widget__value">${forecast.velocityPerDay.toFixed(2)}%/day</span>
-      </div>
-      ${forecast.requiredPacePerDay !== null ? `
-      <div class="forecast-widget__row">
-        <span class="forecast-widget__label">Required pace</span>
-        <span class="forecast-widget__value">${forecast.requiredPacePerDay.toFixed(2)}%/day</span>
-      </div>` : ''}
-      <div class="forecast-widget__row">
-        <span class="forecast-widget__label">Risk</span>
-        <span class="forecast-widget__value forecast-widget__value--${forecast.risk}">${forecast.risk}</span>
       </div>
     </div>`;
 }
@@ -141,19 +108,6 @@ export function MilestoneRow({ goalId, milestone, progress }) {
           .join('')}
         <button type="button" class="milestone-row__add-subtask" data-action="add-subtask">${icon('plus', { size: 13 })}<span>Add subtask</span></button>
       </div>
-    </div>`;
-}
-
-// ---- Linked entity chip — same markup, three different data sources
-// (Project / Habit / Note) supplied by the caller ----
-export function LinkedEntityChip({ icon: iconName, title, meta, color = 'slate' }) {
-  return `
-    <div class="linked-chip">
-      <span class="linked-chip__icon linked-chip__icon--${color}">${icon(iconName, { size: 14 })}</span>
-      <span class="linked-chip__body">
-        <span class="linked-chip__title">${title}</span>
-        ${meta ? `<span class="linked-chip__meta">${meta}</span>` : ''}
-      </span>
     </div>`;
 }
 

@@ -104,6 +104,10 @@
   --identity-rose: #F43F5E;
   --identity-emerald: #10B981;
   --identity-slate: #64748B;
+  /* Added for the Books module's Highlight colors (Yellow/Green/Blue/Pink/
+     Purple/Orange) — amber already covers Orange, but none of the 7
+     existing identities is a true yellow. */
+  --identity-yellow: #EAB308;
 
   color-scheme: light;
 }

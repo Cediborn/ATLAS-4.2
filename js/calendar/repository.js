@@ -9,6 +9,7 @@ import { events, calendar, createEventId } from './data.js';
 import { projects } from '../projects/data.js';
 import { habits, isDueOn } from '../habits/data.js';
 import { goals } from '../goals/data.js';
+import { books, sessions as readingSessions } from '../books/data.js';
 
 // ---- Recurrence expansion (pure) — occurrences are computed on demand for
 // whatever range is being rendered, never stored as separate event copies ----
@@ -197,6 +198,61 @@ function adaptGoalDeadlines(rangeStart, rangeEnd) {
   return results;
 }
 
+// Reading sessions are logged after they happen, not scheduled in advance —
+// a genuinely different shape from Habit reminders (which recur forward,
+// schedule-oriented) or Project/Goal deadlines (single future point-in-time).
+// This adapter surfaces each session on the day/time it actually happened,
+// so it only ever shows up in past or same-day views, never future ones,
+// until the user logs today's session. That's a real distinction, not an
+// oversight — see BUILD_LOG.
+function adaptReadingSessions(rangeStart, rangeEnd) {
+  return readingSessions
+    .filter((s) => s.startTime && s.endTime)
+    .map((s) => {
+      const b = books.find((bk) => bk.id === s.bookId);
+      if (!b) return null;
+      return {
+        id: `book-session-${s.id}`, occurrenceKey: `book-session-${s.id}`,
+        title: `Read \u2014 ${b.title}`, description: '', notes: s.notes || '',
+        start: `${s.date}T${s.startTime}`, end: `${s.date}T${s.endTime}`, allDay: false,
+        calendarId: 'personal', color: null, location: '',
+        recurring: false, recurrenceRule: null, completed: true,
+        priority: 'low', type: 'Reading Session', deadline: false,
+        reminderMinutesBefore: null, projectId: null, habitId: null, goalId: null, bookId: b.id,
+        attachmentsCount: 0, createdAt: s.date, updatedAt: s.date,
+        googleEventId: null, source: 'books', isOccurrence: false,
+      };
+    })
+    .filter(Boolean)
+    .filter((e) => {
+      const s = new Date(e.start);
+      return s >= rangeStart && s <= rangeEnd;
+    });
+}
+
+// Same shape as adaptProjectDeadlines/adaptGoalDeadlines above — only books
+// with a real user-set targetFinishDate produce one; most mock books don't
+// have one, same as most goals having no deadline.
+function adaptBookDeadlines(rangeStart, rangeEnd) {
+  return books
+    .filter((b) => b.targetFinishDate && b.status !== 'Completed' && b.status !== 'Archived')
+    .map((b) => ({
+      id: `book-${b.id}`, occurrenceKey: `book-${b.id}`,
+      title: `${b.title} \u2014 target finish`, description: '', notes: '',
+      start: `${b.targetFinishDate}T17:00`, end: `${b.targetFinishDate}T17:30`, allDay: false,
+      calendarId: 'personal', color: null, location: '',
+      recurring: false, recurrenceRule: null, completed: false,
+      priority: 'medium', type: 'Book Deadline', deadline: true,
+      reminderMinutesBefore: 1440, projectId: null, habitId: null, goalId: null, bookId: b.id,
+      attachmentsCount: 0, createdAt: b.dateAdded, updatedAt: b.updatedAt,
+      googleEventId: null, source: 'books', isOccurrence: false,
+    }))
+    .filter((e) => {
+      const s = new Date(e.start);
+      return s >= rangeStart && s <= rangeEnd;
+    });
+}
+
 // ---- Source registry — a future Google/Outlook adapter registers here with
 // the exact same { id, getEvents(start, end) } shape. That's the whole seam. ----
 const SOURCES = [
@@ -204,6 +260,8 @@ const SOURCES = [
   { id: 'projects', getEvents: adaptProjectDeadlines },
   { id: 'habits', getEvents: adaptHabitReminders },
   { id: 'goals', getEvents: adaptGoalDeadlines },
+  { id: 'books-sessions', getEvents: adaptReadingSessions },
+  { id: 'books-deadlines', getEvents: adaptBookDeadlines },
 ];
 
 export function getEventsInRange(rangeStart, rangeEnd) {

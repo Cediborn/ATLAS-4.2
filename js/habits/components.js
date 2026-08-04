@@ -7,6 +7,12 @@ import { Badge, Progress, Tag, emptyState } from '../components.js';
 import { CATEGORY_CONFIG } from './data.js';
 import { formatFrequency, formatReminderTime, nextMilestone } from './state.js';
 
+// HeatmapGrid moved to the shared component library once Books needed the
+// identical GitHub-style month grid for its reading heatmap — re-exported
+// here so every existing `import { HeatmapGrid } from './components.js'`
+// elsewhere in this module keeps working unchanged. See js/components.js.
+export { HeatmapGrid } from '../components.js';
+
 // ---- CompletionButton — one control, five states. Checkmark draw, ring
 // fill, and the ripple are all CSS (see habits.css); the global
 // prefers-reduced-motion override in base.css already zeroes every one of
@@ -132,39 +138,6 @@ export function WeeklyOverview({ days }) {
         </button>`
         )
         .join('')}
-    </div>`;
-}
-
-// ---- Monthly heatmap — GitHub-style, built on the shared monthGridDays
-// grid (same helper Calendar's month view uses; see date-utils.js) ----
-export function HeatmapGrid({ cells, monthLabel }) {
-  const weekdayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  return `
-    <div class="heatmap">
-      <div class="heatmap__header">
-        <button type="button" class="icon-btn" data-heatmap-nav="prev" aria-label="Previous month">${icon('chevronRight', { size: 15, className: 'heatmap__chevron-left' })}</button>
-        <span class="heatmap__month">${monthLabel}</span>
-        <button type="button" class="icon-btn" data-heatmap-nav="next" aria-label="Next month">${icon('chevronRight', { size: 15 })}</button>
-      </div>
-      <div class="heatmap__weekdays" aria-hidden="true">${weekdayHeaders.map((w) => `<span>${w}</span>`).join('')}</div>
-      <div class="heatmap__grid">
-        ${cells
-          .map((c) => {
-            const showData = c.inCurrentMonth && c.completionPct !== null;
-            const label = showData ? `${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(c.date)}: ${c.completionPct}% (${c.doneCount}/${c.dueCount})` : '';
-            return `<span class="heatmap__cell heatmap__cell--${c.inCurrentMonth ? c.level || 'none' : 'outside'}" data-date="${c.key}" ${showData ? `tabindex="0" title="${label}" aria-label="${label}"` : 'aria-hidden="true"'}></span>`;
-          })
-          .join('')}
-      </div>
-      <div class="heatmap__legend">
-        <span>Less</span>
-        <span class="heatmap__cell heatmap__cell--none"></span>
-        <span class="heatmap__cell heatmap__cell--low"></span>
-        <span class="heatmap__cell heatmap__cell--medium"></span>
-        <span class="heatmap__cell heatmap__cell--high"></span>
-        <span class="heatmap__cell heatmap__cell--perfect"></span>
-        <span>More</span>
-      </div>
     </div>`;
 }
 

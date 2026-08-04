@@ -63,7 +63,11 @@ export const dashboardData = {
   ],
   // habits[] retired — the real Habits module (js/habits/data.js) is the
   // canonical source now; the dashboard preview reads live from it.
-  learning: { title: 'Deep Work — Cal Newport', progress: 62, chapterProgress: 'Ch. 6 of 9' },
+  // learning{} retired the same way — the real Books module (js/books/data.js)
+  // is the canonical source for "what am I reading" now; the dashboard's
+  // "Currently Reading" section reads live from it. The Learning module
+  // itself still doesn't exist (see navItems' phase 4), so nothing here
+  // stands in for that anymore either way.
 };
 
 // Landing-page hero demo: cycles through example quick-capture inputs and

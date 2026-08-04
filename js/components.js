@@ -237,6 +237,100 @@ export function NoteItem({ id, title, editedDate, tag }) {
     </div>`;
 }
 
+// ---- HeatmapGrid — originally only existed as Habits' own component
+// (its monthly completion heatmap); promoted here once Books needed the
+// exact same GitHub-style month grid for its reading heatmap. Habits'
+// components.js now re-exports this instead of keeping a second copy. ----
+export function HeatmapGrid({ cells, monthLabel }) {
+  const weekdayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  return `
+    <div class="heatmap">
+      <div class="heatmap__header">
+        <button type="button" class="icon-btn" data-heatmap-nav="prev" aria-label="Previous month">${icon('chevronRight', { size: 15, className: 'heatmap__chevron-left' })}</button>
+        <span class="heatmap__month">${monthLabel}</span>
+        <button type="button" class="icon-btn" data-heatmap-nav="next" aria-label="Next month">${icon('chevronRight', { size: 15 })}</button>
+      </div>
+      <div class="heatmap__weekdays" aria-hidden="true">${weekdayHeaders.map((w) => `<span>${w}</span>`).join('')}</div>
+      <div class="heatmap__grid">
+        ${cells
+          .map((c) => {
+            const showData = c.inCurrentMonth && c.completionPct !== null;
+            const label = showData ? (c.label || `${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(c.date)}: ${c.completionPct}% (${c.doneCount}/${c.dueCount})`) : '';
+            return `<span class="heatmap__cell heatmap__cell--${c.inCurrentMonth ? c.level || 'none' : 'outside'}" data-date="${c.key}" ${showData ? `tabindex="0" title="${label}" aria-label="${label}"` : 'aria-hidden="true"'}></span>`;
+          })
+          .join('')}
+      </div>
+      <div class="heatmap__legend">
+        <span>Less</span>
+        <span class="heatmap__cell heatmap__cell--none"></span>
+        <span class="heatmap__cell heatmap__cell--low"></span>
+        <span class="heatmap__cell heatmap__cell--medium"></span>
+        <span class="heatmap__cell heatmap__cell--high"></span>
+        <span class="heatmap__cell heatmap__cell--perfect"></span>
+        <span>More</span>
+      </div>
+    </div>`;
+}
+
+// ---- LinkedEntityChip — originally only existed as Goals' own component
+// (Project/Habit/Note cross-links); promoted here once Books needed the
+// identical chip for its own Goal/Project/Habit cross-links. Goals'
+// components.js now re-exports this instead of keeping a second copy. ----
+export function LinkedEntityChip({ icon: iconName, title, meta, color = 'slate' }) {
+  return `
+    <div class="linked-chip">
+      <span class="linked-chip__icon linked-chip__icon--${color}">${icon(iconName, { size: 14 })}</span>
+      <span class="linked-chip__body">
+        <span class="linked-chip__title">${title}</span>
+        ${meta ? `<span class="linked-chip__meta">${meta}</span>` : ''}
+      </span>
+    </div>`;
+}
+
+// ---- ForecastPill / ForecastWidget — originally only existed as Goals'
+// own components (its progress-velocity forecast); promoted here once
+// Books needed the identical shape for its reading-pace forecast. Goals'
+// components.js now re-exports both instead of keeping a second copy.
+// Both read a `forecast` object: {risk, likelyCompletionDate, confidence,
+// velocityPerDay, requiredPacePerDay}. `risk: 'unknown'` (no target set,
+// so there's nothing to be at risk against) renders neutral, not a 4th
+// alarming color. ----
+export function ForecastPill({ forecast }) {
+  if (forecast.risk === 'unknown') return `<span class="forecast-pill forecast-pill--neutral">${icon('compass', { size: 12 })}<span>No target set</span></span>`;
+  const label = forecast.risk === 'high' ? 'At risk' : forecast.risk === 'medium' ? 'Behind pace' : 'On track';
+  return `<span class="forecast-pill forecast-pill--${forecast.risk}">${icon('trendingUp', { size: 12 })}<span>${label}</span></span>`;
+}
+
+export function ForecastWidget({ forecast, emptyLabel = 'Not enough recent progress history yet to forecast this one.' }) {
+  if (forecast.risk === 'unknown' && !forecast.likelyCompletionDate) {
+    return `<div class="forecast-widget forecast-widget--empty">${icon('compass', { size: 16 })}<p>${emptyLabel}</p></div>`;
+  }
+  return `
+    <div class="forecast-widget">
+      <div class="forecast-widget__row">
+        <span class="forecast-widget__label">Likely completion</span>
+        <span class="forecast-widget__value">${forecast.likelyCompletionDate ? formatDate(forecast.likelyCompletionDate) : '\u2014'}</span>
+      </div>
+      <div class="forecast-widget__row">
+        <span class="forecast-widget__label">Confidence</span>
+        <span class="forecast-widget__value">${forecast.confidence}%</span>
+      </div>
+      <div class="forecast-widget__row">
+        <span class="forecast-widget__label">Current pace</span>
+        <span class="forecast-widget__value">${forecast.velocityLabel || `${forecast.velocityPerDay.toFixed(2)}%/day`}</span>
+      </div>
+      ${forecast.requiredPacePerDay !== null && forecast.requiredPacePerDay !== undefined ? `
+      <div class="forecast-widget__row">
+        <span class="forecast-widget__label">Required pace</span>
+        <span class="forecast-widget__value">${forecast.requiredPaceLabel || `${forecast.requiredPacePerDay.toFixed(2)}%/day`}</span>
+      </div>` : ''}
+      <div class="forecast-widget__row">
+        <span class="forecast-widget__label">Risk</span>
+        <span class="forecast-widget__value forecast-widget__value--${forecast.risk}">${forecast.risk}</span>
+      </div>
+    </div>`;
+}
+
 export function HabitItem({ id, name, icon: iconName = 'flame', streak, completedToday, weeklyProgress }) {
   const hasCheck = typeof completedToday === 'boolean';
   return `

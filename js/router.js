@@ -48,6 +48,11 @@ function render(routeId) {
       renderGoalsSkeleton(root);
       renderGoals(root);
     });
+  } else if (item.id === 'books') {
+    import('./books/view.js').then(({ renderBooks, renderBooksSkeleton }) => {
+      renderBooksSkeleton(root);
+      renderBooks(root);
+    });
   } else {
     renderEmptyState(root, item);
   }

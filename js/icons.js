@@ -52,6 +52,9 @@ const paths = {
   briefcase: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/>',
   trendingUp: '<path d="M4 16 10 10l4 4 6-7"/><path d="M15 7h5v5"/>',
   compass: '<circle cx="12" cy="12" r="9"/><path d="m15 9-2 6-6 2 2-6z"/>',
+  // ---- Added for Books ----
+  quote: '<path d="M7 8a3 3 0 0 0-3 3v2a3 3 0 0 0 3 3h1v3H6"/><path d="M17 8a3 3 0 0 0-3 3v2a3 3 0 0 0 3 3h1v3h-2"/>',
+  highlighter: '<path d="m9 11 6-6 4 4-6 6H9v-4Z"/><path d="M6 15h3l-1.5 3.5A1.5 1.5 0 0 1 6 19.5v-2a2.5 2.5 0 0 1 0-2.5Z"/><path d="M3 21h9"/>',
 };
 
 export function icon(name, { size = 20, strokeWidth = 2, className = '' } = {}) {

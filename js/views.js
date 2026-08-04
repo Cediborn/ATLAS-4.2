@@ -13,6 +13,8 @@ import { habits as allHabits } from './habits/data.js';
 import { computeDashboardStats, computeStreak, computeSuccessRate, dayState, topStreaks, computeTrend, setCompletionStatus } from './habits/state.js';
 import { goals as allGoals } from './goals/data.js';
 import { computeGoalProgress, getUpcomingDeadlines } from './goals/state.js';
+import { books as allBooks } from './books/data.js';
+import { computeProgress as computeBookProgress, computeReadingStreak } from './books/state.js';
 import { getEventsInRange } from './calendar/repository.js';
 import { calendar as getCalendarInfo } from './calendar/data.js';
 import { formatTime } from './calendar/state.js';
@@ -113,13 +115,21 @@ export function renderDashboard(container) {
     return { ...s, value: `${dashboardHabitStats.currentStreak} days`, trend: `${trend >= 0 ? '+' : ''}${trend}% vs last week` };
   });
 
-  const learningBody = d.learning
+  // "Learning Progress" (a single static mock book) retired in favor of a
+  // real "Currently Reading" section — the Learning module itself still
+  // doesn't exist (navItems' phase 4), so this now points at Books instead,
+  // the module that actually replaced what this preview always showed.
+  const currentlyReading = allBooks
+    .filter((b) => b.status === 'Currently Reading')
+    .sort((a, b) => new Date(b.lastOpened) - new Date(a.lastOpened))[0];
+  const readingStreak = computeReadingStreak();
+  const learningBody = currentlyReading
     ? `<div class="learning-card">
-        <span class="learning-card__title">${d.learning.title}</span>
-        ${Progress({ percentage: d.learning.progress })}
-        <div class="learning-card__meta">${d.learning.chapterProgress}</div>
+        <span class="learning-card__title">${currentlyReading.title}</span>
+        ${Progress({ percentage: computeBookProgress(currentlyReading) })}
+        <div class="learning-card__meta">Page ${currentlyReading.currentPage} of ${currentlyReading.totalPages}${readingStreak.current > 0 ? ` \u00b7 ${readingStreak.current}-day reading streak` : ''}</div>
       </div>`
-    : emptyState({ icon: 'bookOpen', title: 'Nothing in progress', description: 'Start a course or book.', size: 'sm' });
+    : emptyState({ icon: 'bookOpen', title: 'Nothing in progress', description: 'Start a book to track it here.', size: 'sm' });
 
   container.innerHTML = `
     <div class="dashboard">
@@ -147,7 +157,7 @@ export function renderDashboard(container) {
         <div class="dashboard__col dashboard__col--right">
           ${SectionCard({ title: 'Upcoming Events', action: sectionAction('calendar'), content: eventsBody })}
           ${SectionCard({ title: 'Current Streaks', action: sectionAction('habits'), content: habitsBody })}
-          ${SectionCard({ title: 'Learning Progress', action: sectionAction('learning'), content: learningBody })}
+          ${SectionCard({ title: 'Currently Reading', action: sectionAction('books'), content: learningBody })}
         </div>
       </div>
     </div>
